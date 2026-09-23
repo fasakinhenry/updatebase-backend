@@ -11,6 +11,10 @@ import { organizationsRouter } from "./organizations";
 import { invitesRouter } from "./invites";
 import { composerRouter } from "./composer";
 import { orgOnboardingRouter } from "./orgOnboarding";
+import { testimonialsRouter } from "./testimonials";
+import { bookmarksRouter } from "./bookmarks";
+import { discoverRouter } from "./discover";
+import { profilesRouter } from "./profiles";
 
 export const apiRouter = Router();
 
@@ -26,3 +30,7 @@ apiRouter.use("/organizations", organizationsRouter);
 apiRouter.use("/invites", invitesRouter);
 apiRouter.use("/composer", composerRouter);
 apiRouter.use("/org-setup", orgOnboardingRouter);
+apiRouter.use("/testimonials", testimonialsRouter);
+apiRouter.use("/bookmarks", bookmarksRouter);
+apiRouter.use("/discover", discoverRouter);
+apiRouter.use("/profiles", profilesRouter);

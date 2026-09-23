@@ -16,6 +16,7 @@ import { badRequest, notFound } from "../utils/errors";
 import { notify, preview } from "../services/notify";
 import { computeUpdateScore } from "../services/ranking";
 import { loadViewerState, serializeUpdate } from "../services/feed";
+import { param } from "../utils/params";
 
 export const updatesRouter = Router();
 
@@ -41,7 +42,7 @@ updatesRouter.get(
   "/:id",
   validate({ params: idSchema }),
   asyncHandler(async (req, res) => {
-    const update = await Update.findOne({ _id: req.params.id, removedAt: null })
+    const update = await Update.findOne({ _id: param(req, "id"), removedAt: null })
       .populate("organization", "name handle logoUrl verifiedAt followerCount")
       .populate("author", "name username avatarSeed avatarStyle photoUrl avatarMode")
       .lean();
@@ -49,7 +50,7 @@ updatesRouter.get(
     if (!update) throw notFound("that update is gone");
 
     // a view is worth counting but never worth making someone wait for
-    void Update.updateOne({ _id: req.params.id }, { $inc: { viewCount: 1 } }).exec();
+    void Update.updateOne({ _id: param(req, "id") }, { $inc: { viewCount: 1 } }).exec();
 
     const viewer = await loadViewerState(req.userId!, [update._id]);
     return ok(res, serializeUpdate(update as never, viewer));
@@ -65,7 +66,7 @@ updatesRouter.post(
   writeLimiter,
   validate({ params: idSchema }),
   asyncHandler(async (req, res) => {
-    const update = await Update.findOne({ _id: req.params.id, removedAt: null });
+    const update = await Update.findOne({ _id: param(req, "id"), removedAt: null });
     if (!update) throw notFound("that update is gone");
 
     try {
@@ -103,16 +104,16 @@ updatesRouter.delete(
     const removed = await Reaction.findOneAndDelete({
       user: req.userId,
       subjectType: "update",
-      subject: req.params.id,
+      subject: param(req, "id"),
       kind: "love",
     });
 
     if (!removed) {
-      const current = await Update.findById(req.params.id).select("loveCount").lean();
+      const current = await Update.findById(param(req, "id")).select("loveCount").lean();
       return ok(res, { loved: false, loveCount: current?.loveCount ?? 0 });
     }
 
-    const updated = await bumpCounters(String(req.params.id), { loveCount: -1 });
+    const updated = await bumpCounters(param(req, "id"), { loveCount: -1 });
     return ok(res, { loved: false, loveCount: Math.max(updated?.loveCount ?? 0, 0) });
   }),
 );
@@ -126,7 +127,7 @@ updatesRouter.post(
   writeLimiter,
   validate({ params: idSchema }),
   asyncHandler(async (req, res) => {
-    const update = await Update.findOne({ _id: req.params.id, removedAt: null }).select("_id");
+    const update = await Update.findOne({ _id: param(req, "id"), removedAt: null }).select("_id");
     if (!update) throw notFound("that update is gone");
 
     try {
@@ -147,10 +148,10 @@ updatesRouter.delete(
     const removed = await Bookmark.findOneAndDelete({
       user: req.userId,
       subjectType: "update",
-      subject: req.params.id,
+      subject: param(req, "id"),
     });
 
-    if (removed) await bumpCounters(String(req.params.id), { bookmarkCount: -1 });
+    if (removed) await bumpCounters(param(req, "id"), { bookmarkCount: -1 });
     return ok(res, { bookmarked: false });
   }),
 );
@@ -168,7 +169,7 @@ updatesRouter.post(
   writeLimiter,
   validate({ params: idSchema, body: quoteSchema }),
   asyncHandler(async (req, res) => {
-    const update = await Update.findOne({ _id: req.params.id, removedAt: null });
+    const update = await Update.findOne({ _id: param(req, "id"), removedAt: null });
     if (!update) throw notFound("that update is gone");
 
     const isQuote = Boolean(req.body.body);
@@ -208,11 +209,11 @@ updatesRouter.delete(
     const removed = await Repost.findOneAndDelete({
       user: req.userId,
       subjectType: "update",
-      subject: req.params.id,
+      subject: param(req, "id"),
       kind: "repost",
     });
 
-    if (removed) await bumpCounters(String(req.params.id), { repostCount: -1 });
+    if (removed) await bumpCounters(param(req, "id"), { repostCount: -1 });
     return ok(res, { reposted: false });
   }),
 );
@@ -259,7 +260,7 @@ updatesRouter.get(
 
     const filter: Record<string, unknown> = {
       subjectType: "update",
-      subject: req.params.id,
+      subject: param(req, "id"),
       parent: query.parent ?? null,
       removedAt: null,
     };
@@ -286,7 +287,7 @@ updatesRouter.post(
   writeLimiter,
   validate({ params: idSchema, body: commentSchema }),
   asyncHandler(async (req, res) => {
-    const update = await Update.findOne({ _id: req.params.id, removedAt: null });
+    const update = await Update.findOne({ _id: param(req, "id"), removedAt: null });
     if (!update) throw notFound("that update is gone");
 
     let depth = 0;
@@ -370,7 +371,7 @@ updatesRouter.delete(
   "/comments/:id",
   validate({ params: idSchema }),
   asyncHandler(async (req, res) => {
-    const comment = await Comment.findById(req.params.id);
+    const comment = await Comment.findById(param(req, "id"));
     if (!comment) throw notFound("that comment is gone");
 
     if (String(comment.author) !== req.userId) {
