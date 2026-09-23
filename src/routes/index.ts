@@ -7,6 +7,9 @@ import { feedRouter } from "./feed";
 import { updatesRouter } from "./updates";
 import { followsRouter } from "./follows";
 import { notificationsRouter } from "./notifications";
+import { organizationsRouter } from "./organizations";
+import { invitesRouter } from "./invites";
+import { composerRouter } from "./composer";
 
 export const apiRouter = Router();
 
@@ -18,3 +21,6 @@ apiRouter.use("/feed", feedRouter);
 apiRouter.use("/updates", updatesRouter);
 apiRouter.use("/follows", followsRouter);
 apiRouter.use("/notifications", notificationsRouter);
+apiRouter.use("/organizations", organizationsRouter);
+apiRouter.use("/invites", invitesRouter);
+apiRouter.use("/composer", composerRouter);
