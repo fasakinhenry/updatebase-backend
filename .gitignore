@@ -1,34 +1,32 @@
-# dependencies (bun install)
+# dependencies
 node_modules
 
-# output
-out
+# build output
 dist
+out
 *.tgz
+*.tsbuildinfo
 
-# code coverage
-coverage
-*.lcov
+# env: never commit real values, always commit the example
+.env
+.env.*
+!.env.example
 
 # logs
 logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+*.log
+report.[0-9]*.json
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# test and coverage
+coverage
+*.lcov
 
 # caches
-.eslintcache
 .cache
-*.tsbuildinfo
 
-# IntelliJ based IDEs
+# editors and os
 .idea
-
-# Finder (MacOS) folder config
+.vscode/*
+!.vscode/extensions.json
 .DS_Store
+Thumbs.db

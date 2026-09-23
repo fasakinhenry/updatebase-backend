@@ -1,31 +1,28 @@
 import { Router } from "express";
 import { z } from "zod";
 import { Waitlist } from "../models/Waitlist";
+import { validate } from "../middleware/validate";
+import { writeLimiter } from "../middleware/rateLimit";
+import { asyncHandler } from "../utils/async";
+import { created } from "../utils/respond";
 
 export const waitlistRouter = Router();
 
 const joinSchema = z.object({
-  email: z.string().email(),
+  email: z.email("that does not look like an email address").toLowerCase(),
   role: z.enum(["organization", "member"]),
 });
 
-waitlistRouter.post("/", async (req, res) => {
-  const parsed = joinSchema.safeParse(req.body);
+waitlistRouter.post(
+  "/",
+  writeLimiter,
+  validate({ body: joinSchema }),
+  asyncHandler(async (req, res) => {
+    const { email, role } = req.body;
 
-  if (!parsed.success) {
-    res.status(400).json({ error: "enter a valid email and choose whether you're an organization or a member" });
-    return;
-  }
+    // an upsert means joining twice is harmless and updates the stated role
+    await Waitlist.updateOne({ email }, { $set: { role } }, { upsert: true });
 
-  try {
-    await Waitlist.updateOne(
-      { email: parsed.data.email },
-      { $set: { role: parsed.data.role } },
-      { upsert: true }
-    );
-    res.status(201).json({ status: "joined" });
-  } catch (error) {
-    console.error("failed to save waitlist entry:", error);
-    res.status(500).json({ error: "something went wrong, please try again" });
-  }
-});
+    return created(res, { status: "joined" });
+  }),
+);
