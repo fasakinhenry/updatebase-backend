@@ -10,6 +10,7 @@ import { notificationsRouter } from "./notifications";
 import { organizationsRouter } from "./organizations";
 import { invitesRouter } from "./invites";
 import { composerRouter } from "./composer";
+import { orgOnboardingRouter } from "./orgOnboarding";
 
 export const apiRouter = Router();
 
@@ -24,3 +25,4 @@ apiRouter.use("/notifications", notificationsRouter);
 apiRouter.use("/organizations", organizationsRouter);
 apiRouter.use("/invites", invitesRouter);
 apiRouter.use("/composer", composerRouter);
+apiRouter.use("/org-setup", orgOnboardingRouter);
